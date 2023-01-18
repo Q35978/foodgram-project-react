@@ -86,7 +86,7 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE'),
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
@@ -94,7 +94,6 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT')
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -164,18 +163,10 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = 'users.User'
 
-DJOSER = {
-    'SERIALIZERS': {
-        'user_create': 'api.serializers.CustomUserCreateSerializer',
-        'user': 'api.serializers.CustomUserSerializer',
-        'current_user': 'api.serializers.CustomUserSerializer',
-    },
+ERR_AUTH_MSG = 'Не удается войти с такими учетными данными.'
 
-    'PERMISSIONS': {
-        'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
-        'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
-    },
-    'HIDE_USERS': False,
-}
+CUSTOM_PAGE_SIZE = 6
+
+SHOPPING_CART_FILENAME = 'shoppingcart.pdf'

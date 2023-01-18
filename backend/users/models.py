@@ -4,7 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from foodgram import settings
 
 
-class CustomUser(AbstractUser):
+class User(AbstractUser):
     username = models.CharField(
         unique=True,
         verbose_name='Имя пользователя',
@@ -28,6 +28,9 @@ class CustomUser(AbstractUser):
         max_length=settings.MAX_LEN_USERS_CHARFIELD,
     )
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
@@ -39,13 +42,13 @@ class CustomUser(AbstractUser):
 
 class Subscribe(models.Model):
     subscriber = models.ForeignKey(
-        CustomUser,
+        User,
         related_name='subscriber',
         verbose_name='Подписчик',
         on_delete=models.CASCADE,
     )
     author = models.ForeignKey(
-        CustomUser,
+        User,
         related_name='subscribing',
         verbose_name='Автор',
         on_delete=models.CASCADE,

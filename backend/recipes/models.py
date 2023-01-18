@@ -94,25 +94,25 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         verbose_name='Автор',
-        related_name='recipes',
+        related_name='recipe',
         on_delete=models.CASCADE,
     )
     tags = models.ManyToManyField(
         Tag,
         verbose_name='Тэги',
-        related_name='recipes',
+        related_name='recipe',
     )
     ingredients = models.ManyToManyField(
         Ingredient,
         verbose_name='Ингредиенты',
-        related_name='recipes',
+        related_name='recipe',
         through='IngredientsList',
     )
     image = models.ImageField(
         verbose_name='Изображение',
-        upload_to='recipe_images/',
+        upload_to='static/recipe/',
     )
-    Description = models.TextField(
+    description = models.TextField(
         verbose_name='Описание',
         max_length=settings.MAX_LEN_TEXTFIELD,
     )
@@ -124,11 +124,15 @@ class Recipe(models.Model):
             MaxValueValidator(settings.MAX_COOKING_TIME),
         ),
     )
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
+        auto_now_add=True
+    )
 
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        ordering = ('-name',)
+        ordering = ('-pub_date',)
         constraints = (
             models.UniqueConstraint(
                 fields=(
@@ -151,13 +155,13 @@ class IngredientsList(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         verbose_name='Рецепт',
-        related_name='ingredients_list',
+        related_name='recipe',
         on_delete=models.CASCADE,
     )
     ingredients = models.ForeignKey(
         Ingredient,
         verbose_name='Ингредиент',
-        related_name='ingredients_list',
+        related_name='ingredient',
         on_delete=models.CASCADE,
     )
     quantity = models.PositiveSmallIntegerField(
@@ -170,8 +174,8 @@ class IngredientsList(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Список ингрилиентов'
-        verbose_name_plural = 'Списки ингрилиентов'
+        verbose_name = 'Список ингредиентов'
+        verbose_name_plural = 'Списки ингредиентов'
         ordering = ('recipe', )
         constraints = (
             models.UniqueConstraint(
@@ -188,13 +192,13 @@ class UserFavourite(models.Model):
     user = models.ForeignKey(
         User,
         verbose_name='Пользователь',
-        related_name='user_favorites',
+        related_name='user_favorite',
         on_delete=models.CASCADE,
     )
     recipe = models.ForeignKey(
         Recipe,
         verbose_name='Рецепт',
-        related_name='user_favorites',
+        related_name='user_favorite',
         on_delete=models.CASCADE,
     )
 

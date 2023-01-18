@@ -1,12 +1,12 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 
-from .models import CustomUser, Subscribe
+from .models import User, Subscribe
 
 
-@admin.register(CustomUser)
-class CustomUserAdmin(UserAdmin):
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'username',
         'email',
         'first_name',
@@ -38,6 +38,7 @@ class CustomUserAdmin(UserAdmin):
 @admin.register(Subscribe)
 class SubscribeAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'subscriber',
         'author',
     )

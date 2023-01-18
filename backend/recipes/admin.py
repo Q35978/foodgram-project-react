@@ -8,6 +8,7 @@ from . import models
 @admin.register(models.Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'name',
         'color',
         'slug',
@@ -21,6 +22,7 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(models.Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'name',
         'measurement_unit',
     )
@@ -37,6 +39,7 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(models.IngredientsList)
 class IngredientsListAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'recipe',
         'ingredients',
     )
@@ -46,6 +49,7 @@ class IngredientsListAdmin(admin.ModelAdmin):
 @admin.register(models.ShoppingCart)
 class UserCartAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'user',
         'recipe',
     )
@@ -55,6 +59,7 @@ class UserCartAdmin(admin.ModelAdmin):
 @admin.register(models.UserFavourite)
 class UserFavouriteAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'user',
         'recipe',
     )
@@ -64,6 +69,7 @@ class UserFavouriteAdmin(admin.ModelAdmin):
 @admin.register(models.Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'name',
         'author',
     )
@@ -76,7 +82,7 @@ class RecipeAdmin(admin.ModelAdmin):
             'author',
             'tags',
         ),
-        ('text',),
+        ('description',),
         ('image',),
     )
     raw_id_fields = (
