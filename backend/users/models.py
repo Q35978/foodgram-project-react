@@ -10,10 +10,6 @@ class User(AbstractUser):
         verbose_name='Имя пользователя',
         max_length=settings.MAX_LEN_USERS_CHARFIELD,
     )
-    password = models.CharField(
-        verbose_name='Пароль',
-        max_length=settings.MAX_LEN_USERS_CHARFIELD,
-    )
     email = models.EmailField(
         unique=True,
         verbose_name='Email',
