@@ -1,5 +1,8 @@
 from io import BytesIO
 
+from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_protect
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.db.models.aggregates import Count, Sum
@@ -159,7 +162,8 @@ class AddOrDeleteFromShoppingCart(
     def perform_destroy(self, instance):
         self.request.user.shopping_cart.recipe.remove(instance)
 
-
+@cache_page(60 * 15)
+@csrf_protect
 class AuthToken(ObtainAuthToken):
     serializer_class = TokenSerializer
     permission_classes = (AllowAny,)
