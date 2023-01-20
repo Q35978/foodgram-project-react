@@ -162,12 +162,13 @@ class AddOrDeleteFromShoppingCart(
     def perform_destroy(self, instance):
         self.request.user.shopping_cart.recipe.remove(instance)
 
-@cache_page(60 * 15)
-@csrf_protect
+
 class AuthToken(ObtainAuthToken):
     serializer_class = TokenSerializer
     permission_classes = (AllowAny,)
 
+    @cache_page(60 * 15)
+    @csrf_protect
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         user = serializer.validated_data['user']
