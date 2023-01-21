@@ -36,12 +36,12 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         read_only=True
     )
     name = serializers.SlugRelatedField(
-        source='ingredients',
+        source='ingredient',
         slug_field='name',
         read_only=True
     )
     measurement_unit = serializers.SlugRelatedField(
-        source='ingredients',
+        source='ingredient',
         slug_field='measurement_unit',
         read_only=True
     )
@@ -71,29 +71,11 @@ class IngredientsInListEditSerializer(serializers.ModelSerializer):
             'quantity'
         )
 
-    def validate(self, data):
-        recipe = data['recipe']
-        ingredients_list = IngredientsList.objects.filter(recipe=recipe)
-        added_ingredients_list = set()
-        dict_for_error = {}
-        for item in ingredients_list:
-            if not int(item['quantity']) > 0:
-                if not dict_for_error['quantity']:
-                    dict_for_error['quantity'] = (
-                        dict_for_error['quantity']
-                        + 'Количество ингредиента введено не корректно!'
-                    )
-            id_ingredient = item['id']
-            if id_ingredient in added_ingredients_list:
-                ingredient = get_object_or_404(Ingredient, id=id_ingredient)
-                if not dict_for_error['ingredients_list']:
-                    dict_for_error['ingredients_list'] = (
-                        dict_for_error['ingredients_list']
-                        + f'Ингридиент {ingredient} уже добавлен!'
-                    )
-            added_ingredients_list.add(id_ingredient)
-        if dict_for_error:
-            raise serializers.ValidationError(dict_for_error)
+    def validate_quantity(self, data):
+        if not int(data) > 0:
+            raise serializers.ValidationError(
+                'Количество ингредиента введено не корректно!'
+            )
         return data
 
 
@@ -175,6 +157,20 @@ class RecipeEditSerializer(serializers.ModelSerializer):
                     dict_for_error['tags']
                     + f'Тэга {tag_name} не существует! '
                 )
+        added_ingredients_list = set()
+        for item in ingredients_list:
+            id_item = item['id']
+            if id_item in added_ingredients_list:
+                ingredient = get_object_or_404(
+                    Ingredient,
+                    id=item['id']
+                )
+                if not dict_for_error['ingredient']:
+                    dict_for_error['ingredient'] = (
+                        dict_for_error['ingredient']
+                        + f'Ингридиент {ingredient} уже добавлен!'
+                    )
+                added_ingredients_list.append(id_item)
         if dict_for_error:
             raise serializers.ValidationError(dict_for_error)
         return data

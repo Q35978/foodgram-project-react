@@ -41,7 +41,7 @@ class IngredientsListAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'recipe',
-        'ingredients',
+        'ingredient',
     )
     empty_value_display = settings.EMPTY_VALUE_DISPLAY
 
