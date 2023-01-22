@@ -74,10 +74,8 @@ class RecipeAdmin(admin.ModelAdmin):
         'author',
     )
     fields = (
-        (
-            'name',
-            'cooking_time',
-        ),
+        ('name',),
+        ('cooking_time',),
         ('author',),
         ('tags',),
         ('text',),
