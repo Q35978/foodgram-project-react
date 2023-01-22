@@ -111,17 +111,31 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         required=True,
         source='recipe'
     )
-    is_favorited = serializers.BooleanField(
-        read_only=True
-    )
-    is_in_shopping_cart = serializers.BooleanField(
-        read_only=True
-    )
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
         fields = '__all__'
+
+    def get_is_favorited(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Recipe.objects.filter(
+            user_favorite__user=user,
+            id=obj.id
+        ).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Recipe.objects.filter(
+            shopping_cart__user=user,
+            id=obj.id
+        ).exists()
 
 
 class RecipeEditSerializer(serializers.ModelSerializer):
@@ -150,16 +164,16 @@ class RecipeEditSerializer(serializers.ModelSerializer):
         ingredients_list = data['ingredients']
         dict_for_error = {}
         if not ingredients_list:
-            dict_for_error['ingredients'] = ('Список ингреиентов не'
-                                             ' может быть пустым!')
+            raise serializers.ValidationError('Список ингреиентов не'
+                                              ' может быть пустым!')
         tags = data['tags']
         if not tags:
-            dict_for_error['tags'] = 'Нужен хотя бы один тэг для рецепта!'
+            raise serializers.ValidationError('Нужен хотя бы один'
+                                              ' тэг для рецепта!')
         for tag_name in tags:
             if not Tag.objects.filter(name=tag_name).exists():
-                dict_for_error['tags'] = (
-                    dict_for_error['tags']
-                    + f'Тэга {tag_name} не существует! '
+                raise serializers.ValidationError(
+                    f'Тэга {tag_name} не существует! '
                 )
         added_ingredients_list = set()
         for item in ingredients_list:
@@ -170,13 +184,10 @@ class RecipeEditSerializer(serializers.ModelSerializer):
                     id=item['id']
                 )
                 if not dict_for_error['ingredient']:
-                    dict_for_error['ingredient'] = (
-                        dict_for_error['ingredient']
-                        + f'Ингридиент {ingredient} уже добавлен!'
+                    raise serializers.ValidationError(
+                        f'Ингридиент {ingredient} уже добавлен!'
                     )
                 added_ingredients_list.append(id_item)
-        if dict_for_error:
-            raise serializers.ValidationError(dict_for_error)
         return data
 
     def validate_cooking_time(self, cooking_time):
@@ -187,22 +198,21 @@ class RecipeEditSerializer(serializers.ModelSerializer):
         return cooking_time
 
     def create_ingredients(self, ingredients, recipe):
-        list_ingredients = []
-        for ingredient in ingredients:
-            new_ingredient_row = IngredientsList(
+        IngredientsList.objects.bulk_create(
+            IngredientsList(
                 recipe=recipe,
-                ingredient_id=ingredient['id'],
-                amount=ingredient.get('amount'),
+                ingredient_id=ingredient.get('id'),
+                amount=ingredient.get('amount')
             )
-            list_ingredients.append(new_ingredient_row)
-        IngredientsList.objects.bulk_create(list_ingredients)
+            for ingredient in ingredients
+        )
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        self.create_ingredients_list(ingredients, recipe)
+        self.create_ingredients(ingredients, recipe)
         return recipe
 
     def update(self, instance, validated_data):
