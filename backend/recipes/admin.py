@@ -78,10 +78,8 @@ class RecipeAdmin(admin.ModelAdmin):
             'name',
             'cooking_time',
         ),
-        (
-            'author',
-            'tags',
-        ),
+        ('author',),
+        ('tags',),
         ('text',),
         ('image',),
     )
