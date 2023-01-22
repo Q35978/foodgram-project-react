@@ -174,8 +174,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
         shopping_cart = (
             request.user.shopping_cart.recipe.
             values(
-                'ingredients_list__name',
-                'ingredients_list__measurement_unit'
+                'ingredients__name',
+                'ingredients__measurement_unit'
             ).annotate(amount=Sum('recipe__amount')).order_by())
         page.setFont('Vera', 12)
         if not shopping_cart:
@@ -202,8 +202,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
             page.drawString(
                 x_coordinate,
                 y_with_indent,
-                f'* {recipe["ingredients_list__name"]} - '
-                f'{recipe["quantity"]}, '
+                f'* {recipe["ingredients_name"]} - '
+                f'{recipe["amount"]}, '
                 f'{recipe["ingredients_list__measurement_unit"]}.')
             y_coordinate -= 15
             if y_coordinate <= 60:
