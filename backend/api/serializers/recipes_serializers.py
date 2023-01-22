@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
 
@@ -74,7 +73,7 @@ class IngredientsInListEditSerializer(serializers.ModelSerializer):
     def validate_amount(self, data):
         if not int(data) > 0:
             raise serializers.ValidationError(
-                 {'error': 'Количество ингредиента введено не корректно!'}
+                {'error': 'Количество ингредиента введено не корректно!'}
             )
         return data
 
@@ -163,26 +162,30 @@ class RecipeEditSerializer(serializers.ModelSerializer):
         read_only_fields = ('author',)
 
     def validate(self, data):
-        ingredients_list = [item['ingredient'] for item in data['ingredients']]
+        ingredients_list = [
+            item['ingredient'] for item in data['ingredients']
+        ]
+        error_text = {}
         if not ingredients_list:
-            raise serializers.ValidationError('Список ингреиентов не'
-                                              ' может быть пустым!')
+            error_text['error'] = (error_text['error']
+                                   + ('Список ингреиентов не'
+                                      ' может быть пустым!'))
         tags = data['tags']
         if not tags:
-            raise serializers.ValidationError('Нужен хотя бы один'
-                                              ' тэг для рецепта!')
+            error_text['error'] = (error_text['error']
+                                   + ('Нужен хотя бы один'
+                                      ' тэг для рецепта!'))
         for tag_name in tags:
             if not Tag.objects.filter(name=tag_name).exists():
-                raise serializers.ValidationError(
-                    f'Тэга {tag_name} не существует! '
-                )
+                error_text['error'] = (error_text['error']
+                                       + (f'Тэга {tag_name} не существует!'))
         all_count_ingredients = len(ingredients_list)
-        distinct_count_ingredients =len(set(ingredients_list))
-
-        if all_count_ingredients != distinct_count_ingredients:
-            raise serializers.ValidationError(
-                {'error': 'Ингредиенты должны быть уникальными'}
-            )
+        distinct_count_ingredients = len(set(ingredients_list))
+        if not all_count_ingredients == distinct_count_ingredients:
+            error_text['error'] = (error_text['error']
+                                   + ('Ингредиенты должны быть уникальными'))
+        if error_text['error']:
+            raise serializers.ValidationError(error_text['error'])
         return data
 
     def validate_cooking_time(self, cooking_time):
