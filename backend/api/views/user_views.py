@@ -19,7 +19,7 @@ from users.models import Subscribe
 
 from api.serializers.user_serializers import (
     UserCreateSerializer,
-    UserListSerializer,
+    UserSerializer,
     TokenSerializer,
     UserPasswordSerializer,
     SubscribeSerializer
@@ -84,7 +84,7 @@ class AuthToken(ObtainAuthToken):
 
 
 class UsersViewSet(UserViewSet):
-    serializer_class = UserListSerializer
+    serializer_class = UserSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
@@ -99,7 +99,7 @@ class UsersViewSet(UserViewSet):
     def get_serializer_class(self):
         if self.request.method.upper() == 'POST':
             return UserCreateSerializer
-        return UserListSerializer
+        return UserSerializer
 
     def perform_create(self, serializer):
         password = make_password(self.request.data['password'])

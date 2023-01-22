@@ -14,6 +14,8 @@ from recipes.models import (
 
 from users.models import Subscribe
 
+from api.serializers.user_serializers import UserSerializer
+
 
 User = get_user_model()
 
@@ -95,6 +97,8 @@ class RecipeUserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
+        if not user.is_authenticated:
+            return False
         return Subscribe.objects.filter(subscriber=user, author=obj).exists()
 
 
@@ -125,6 +129,9 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
 
 class RecipeEditSerializer(serializers.ModelSerializer):
+    author = UserSerializer(
+        read_only=True
+    )
     image = Base64ImageField(
         max_length=None,
         use_url=True
@@ -133,7 +140,7 @@ class RecipeEditSerializer(serializers.ModelSerializer):
         many=True,
         queryset=Tag.objects.all()
     )
-    ingredients_list = IngredientsInListEditSerializer(
+    ingredients = IngredientsInListEditSerializer(
         many=True
     )
 
@@ -143,11 +150,11 @@ class RecipeEditSerializer(serializers.ModelSerializer):
         read_only_fields = ('author',)
 
     def validate(self, data):
-        ingredients_list = data['ingredients_list']
+        ingredients_list = data['ingredients']
         dict_for_error = {}
         if not ingredients_list:
-            dict_for_error['ingredients_list'] = ('Список ингреиентов не'
-                                                  ' может быть пустым!')
+            dict_for_error['ingredients'] = ('Список ингреиентов не'
+                                             ' может быть пустым!')
         tags = data['tags']
         if not tags:
             dict_for_error['tags'] = 'Нужен хотя бы один тэг для рецепта!'
@@ -182,9 +189,9 @@ class RecipeEditSerializer(serializers.ModelSerializer):
             )
         return cooking_time
 
-    def create_ingredients_list(self, ingredients_list, recipe):
+    def create_ingredients(self, ingredients, recipe):
         list_ingredients = []
-        for ingredient in ingredients_list:
+        for ingredient in ingredients:
             new_ingredient_row = IngredientsList(
                 recipe=recipe,
                 ingredient_id=ingredient['id'],

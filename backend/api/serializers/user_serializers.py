@@ -30,7 +30,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return password
 
 
-class UserListSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -89,11 +89,11 @@ class UserPasswordSerializer(serializers.Serializer):
     )
 
     def validate_current_password(self, current_password):
-        user = authenticate(
-            email=self.context.get('request').email,
-            password=current_password
-        )
-        if not user:
+        user = self.context['request'].user
+        if not authenticate(
+                username=user.username,
+                password=current_password
+        ):
             raise serializers.ValidationError(
                 ERR_AUTH_MSG,
                 code='authorization'
@@ -125,25 +125,26 @@ class SubscribeRecipeSerializer(serializers.ModelSerializer):
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
-    author_email = serializers.EmailField(
+    id = serializers.IntegerField(
+        source='author.id'
+    )
+    email = serializers.EmailField(
         source='author.email'
     )
-    author_username = serializers.CharField(
+    username = serializers.CharField(
         source='author.username'
     )
-    author_first_name = serializers.CharField(
+    first_name = serializers.CharField(
         source='author.first_name'
     )
-    author_last_name = serializers.CharField(
+    last_name = serializers.CharField(
         source='author.last_name'
     )
-    recipes = serializers.SerializerMethodField(
-        read_only=True
-    )
+    recipes = serializers.SerializerMethodField()
     is_subscribed = serializers.BooleanField(
         read_only=True
     )
-    recipes_count = serializers.SerializerMethodField(
+    recipes_count = serializers.IntegerField(
         read_only=True
     )
 
@@ -151,10 +152,10 @@ class SubscribeSerializer(serializers.ModelSerializer):
         model = Subscribe
         fields = (
             'id',
-            'author_email',
-            'author_username',
-            'author_first_name',
-            'author_last_name',
+            'email',
+            'username',
+            'first_name',
+            'last_name',
             'is_subscribed',
             'recipes',
             'recipes_count'
