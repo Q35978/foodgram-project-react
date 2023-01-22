@@ -60,16 +60,12 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 class IngredientsInListEditSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
-    name = serializers.ReadOnlyField(
-        source='ingredient.name'
-    )
     amount = serializers.IntegerField()
 
     class Meta:
         model = IngredientsList
         fields = (
             'id',
-            'name',
             'amount'
         )
 
@@ -203,10 +199,10 @@ class RecipeEditSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
-        ingredients_list = validated_data.pop('ingredients_list')
+        ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        self.create_ingredients_list(ingredients_list, recipe)
+        self.create_ingredients_list(ingredients, recipe)
         return recipe
 
     def update(self, instance, validated_data):
@@ -214,10 +210,10 @@ class RecipeEditSerializer(serializers.ModelSerializer):
             instance.tags.set(
                 validated_data.pop('tags')
             )
-        if 'ingredients_list' in validated_data:
-            ingredients_list = validated_data.pop('ingredients_list')
+        if 'ingredients' in validated_data:
+            ingredients = validated_data.pop('ingredients')
             instance.ingredients_list.clear()
-            self.create_ingredients_list(ingredients_list, instance)
+            self.create_ingredients_list(ingredients, instance)
         return super().update(
             instance,
             validated_data

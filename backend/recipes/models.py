@@ -112,7 +112,7 @@ class Recipe(models.Model):
         verbose_name='Изображение',
         upload_to='static/recipe/',
     )
-    description = models.TextField(
+    text = models.TextField(
         verbose_name='Описание',
         max_length=settings.MAX_LEN_TEXTFIELD,
     )
