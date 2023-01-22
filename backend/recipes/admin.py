@@ -82,7 +82,7 @@ class RecipeAdmin(admin.ModelAdmin):
             'author',
             'tags',
         ),
-        ('description',),
+        ('text',),
         ('image',),
     )
     raw_id_fields = (
