@@ -71,7 +71,7 @@ class GetListObjectUseRecipeMixin:
     permission_classes = (AllowAny,)
 
     def get_object(self):
-        recipe_id = self.kwargs['recipe_id']
+        recipe_id = self.kwargs['id']
         recipe = get_object_or_404(Recipe, id=recipe_id)
         self.check_object_permissions(self.request, recipe)
         return recipe
@@ -86,7 +86,7 @@ class AddOrDeleteFromFavorite(
     def create(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        request.user.user_favorites.recipe.add(instance)
+        request.user.user_favorite.recipe.add(instance)
         return Response(
             serializer.data,
             status=status.HTTP_201_CREATED
