@@ -208,7 +208,8 @@ class RecipeEditSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(**validated_data)
+        user = self.context.get('request').user
+        recipe = Recipe.objects.create(author=user, **validated_data)
         recipe.tags.set(tags)
         self.create_ingredients(ingredients, recipe)
         return recipe
@@ -220,8 +221,8 @@ class RecipeEditSerializer(serializers.ModelSerializer):
             )
         if 'ingredients' in validated_data:
             ingredients = validated_data.pop('ingredients')
-            instance.ingredients_list.clear()
-            self.create_ingredients_list(ingredients, instance)
+            instance.ingredients.clear()
+            self.create_ingredients(ingredients, instance)
         return super().update(
             instance,
             validated_data

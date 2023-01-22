@@ -38,7 +38,7 @@ class AddOrDeleteSubscribe(generics.RetrieveDestroyAPIView,
         ).prefetch_related(
             'subscribing__recipe'
         ).annotate(
-            recipes_count=Count('ubscribing__recipe'),
+            recipes_count=Count('subscribing__recipe'),
             is_subscribed=Value(True),
         )
 
