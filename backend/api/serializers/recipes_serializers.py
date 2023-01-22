@@ -162,32 +162,6 @@ class RecipeEditSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ingredients_list = data['ingredients']
-        dict_for_error = {}
-        if not ingredients_list:
-            raise serializers.ValidationError('Список ингреиентов не'
-                                              ' может быть пустым!')
-        tags = data['tags']
-        if not tags:
-            raise serializers.ValidationError('Нужен хотя бы один'
-                                              ' тэг для рецепта!')
-        for tag_name in tags:
-            if not Tag.objects.filter(name=tag_name).exists():
-                raise serializers.ValidationError(
-                    f'Тэга {tag_name} не существует! '
-                )
-        added_ingredients_list = set()
-        for item in ingredients_list:
-            id_item = item['id']
-            if id_item in added_ingredients_list:
-                ingredient = get_object_or_404(
-                    Ingredient,
-                    id=item['id']
-                )
-                if not dict_for_error['ingredient']:
-                    raise serializers.ValidationError(
-                        f'Ингридиент {ingredient} уже добавлен!'
-                    )
-                added_ingredients_list.append(id_item)
         return data
 
     def validate_cooking_time(self, cooking_time):
