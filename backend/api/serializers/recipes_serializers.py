@@ -141,6 +141,7 @@ class RecipeEditSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all()
     )
     ingredients = IngredientsInListEditSerializer(
+        source='recipe',
         many=True
     )
 
