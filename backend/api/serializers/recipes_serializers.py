@@ -51,7 +51,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'name',
-            'quantity',
+            'amount',
             'measurement_unit',
         )
 
@@ -61,17 +61,17 @@ class IngredientsInListEditSerializer(serializers.ModelSerializer):
     name = serializers.ReadOnlyField(
         source='ingredient.name'
     )
-    quantity = serializers.IntegerField()
+    amount = serializers.IntegerField()
 
     class Meta:
         model = IngredientsList
         fields = (
             'id',
             'name',
-            'quantity'
+            'amount'
         )
 
-    def validate_quantity(self, data):
+    def validate_amount(self, data):
         if not int(data) > 0:
             raise serializers.ValidationError(
                 'Количество ингредиента введено не корректно!'
@@ -188,7 +188,7 @@ class RecipeEditSerializer(serializers.ModelSerializer):
             new_ingredient_row = IngredientsList(
                 recipe=recipe,
                 ingredient_id=ingredient['id'],
-                quantity=ingredient.get('quantity'),
+                amount=ingredient.get('amount'),
             )
             list_ingredients.append(new_ingredient_row)
         IngredientsList.objects.bulk_create(list_ingredients)

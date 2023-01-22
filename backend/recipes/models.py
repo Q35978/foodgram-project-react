@@ -164,7 +164,7 @@ class IngredientsList(models.Model):
         related_name='ingredient',
         on_delete=models.CASCADE,
     )
-    quantity = models.PositiveSmallIntegerField(
+    amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
         default=1,
         validators=(
@@ -185,7 +185,7 @@ class IngredientsList(models.Model):
         )
 
     def __str__(self):
-        return f'{self.ingredient} {self.quantity}'
+        return f'{self.ingredient} {self.amount}'
 
 
 class UserFavourite(models.Model):
