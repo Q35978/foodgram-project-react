@@ -10,12 +10,14 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
-from rest_framework import generics, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import (SAFE_METHODS, AllowAny,
-                                        IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (
+    SAFE_METHODS,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly
+)
 
 from api.filters import IngredientFilter, RecipeFilter
 
@@ -34,9 +36,9 @@ from api.serializers.recipes_serializers import (
     IngredientSerializer,
     RecipeReadSerializer,
     RecipeEditSerializer,
+    UserFavouriteSerializer,
+    ShoppingCartSerializer,
 )
-
-from api.serializers.user_serializers import SubscribeRecipeSerializer
 
 from foodgram.settings import SHOPPING_CART_FILENAME
 
@@ -64,54 +66,6 @@ class IngredientsViewSet(
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filterset_class = IngredientFilter
-
-
-class GetListObjectUseRecipeMixin:
-    serializer_class = SubscribeRecipeSerializer
-    permission_classes = (AllowAny,)
-
-    def get_object(self):
-        recipe_id = self.kwargs['id']
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        self.check_object_permissions(self.request, recipe)
-        return recipe
-
-
-class AddOrDeleteFromFavorite(
-    GetListObjectUseRecipeMixin,
-    generics.RetrieveDestroyAPIView,
-    generics.ListCreateAPIView
-):
-
-    def create(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        request.user.user_favorite.recipe.add(instance)
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED
-        )
-
-    def perform_destroy(self, instance):
-        self.request.user.user_favorites.recipe.remove(instance)
-
-
-class AddOrDeleteFromShoppingCart(
-    GetListObjectUseRecipeMixin,
-    generics.RetrieveDestroyAPIView,
-    generics.ListCreateAPIView
-):
-    def create(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        request.user.shopping_cart.recipe.add(instance)
-        return Response(
-            serializer.data,
-            tatus=status.HTTP_201_CREATED
-        )
-
-    def perform_destroy(self, instance):
-        self.request.user.shopping_cart.recipe.remove(instance)
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
@@ -161,6 +115,38 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    @action(
+        detail=True,
+        methods=('POST',),
+        permission_classes=[IsAuthenticated]
+    )
+    def shopping_cart(self, request, pk):
+        context = {'request': request}
+        recipe = get_object_or_404(Recipe, id=pk)
+        data = {
+            'user': request.user.id,
+            'recipe': recipe.id
+        }
+        serializer = ShoppingCartSerializer(
+            data=data,
+            context=context
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+
+    @shopping_cart.mapping.delete
+    def destroy_shopping_cart(self, request, pk):
+        get_object_or_404(
+            ShoppingCart,
+            user=request.user.id,
+            recipe=get_object_or_404(Recipe, id=pk)
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=False,
@@ -218,3 +204,35 @@ class RecipesViewSet(viewsets.ModelViewSet):
             as_attachment=True,
             filename=SHOPPING_CART_FILENAME
         )
+
+    @action(
+        detail=True,
+        methods=('POST',),
+        permission_classes=[IsAuthenticated]
+    )
+    def favorite(self, request, pk):
+        context = {"request": request}
+        recipe = get_object_or_404(Recipe, id=pk)
+        data = {
+            'user': request.user.id,
+            'recipe': recipe.id
+        }
+        serializer = UserFavouriteSerializer(
+            data=data,
+            context=context
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+
+    @favorite.mapping.delete
+    def destroy_favorite(self, request, pk):
+        get_object_or_404(
+            UserFavourite,
+            user=request.user,
+            recipe=get_object_or_404(Recipe, id=pk)
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

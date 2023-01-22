@@ -4,15 +4,12 @@ from rest_framework.routers import DefaultRouter
 from api.views.user_views import (
     UsersViewSet,
     AuthToken,
-    AddOrDeleteSubscribe,
     change_password
 )
 from api.views.recipes_views import (
     TagsViewSet,
     IngredientsViewSet,
     RecipesViewSet,
-    AddOrDeleteFromFavorite,
-    AddOrDeleteFromShoppingCart,
 )
 
 
@@ -36,7 +33,6 @@ router.register(
     UsersViewSet
 )
 
-
 urlpatterns = [
     path(
         '',
@@ -59,20 +55,5 @@ urlpatterns = [
         'users/set_password/',
         change_password,
         name='set_password'
-    ),
-    path(
-        'users/<int:user_id>/subscribe/',
-        AddOrDeleteSubscribe.as_view(),
-        name='subscribe'
-    ),
-    path(
-        'recipes/<int:recipe_id>/favorite/',
-        AddOrDeleteFromFavorite.as_view(),
-        name='favorite_recipe'
-    ),
-    path(
-        'recipes/<int:recipe_id>/shopping_cart/',
-        AddOrDeleteFromShoppingCart.as_view(),
-        name='shopping_cart'
     ),
 ]

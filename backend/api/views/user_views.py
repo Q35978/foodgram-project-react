@@ -1,11 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
-from django.db.models.aggregates import Count
 from django.db.models.expressions import Exists, OuterRef, Value
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import action, api_view
@@ -26,47 +25,6 @@ from api.serializers.user_serializers import (
 )
 
 User = get_user_model()
-
-
-class AddOrDeleteSubscribe(generics.RetrieveDestroyAPIView,
-                           generics.ListCreateAPIView):
-    serializer_class = SubscribeSerializer
-
-    def get_queryset(self):
-        return self.request.user.subscriber.select_related(
-            'subscribing'
-        ).prefetch_related(
-            'subscribing__recipe'
-        ).annotate(
-            recipes_count=Count('subscribing__recipe'),
-            is_subscribed=Value(True),
-        )
-
-    def get_object(self):
-        user_id = self.kwargs['user_id']
-        user = get_object_or_404(User, id=user_id)
-        self.check_object_permissions(self.request, user)
-        return user
-
-    def create(self, request, *args, **kwargs):
-        instance = self.get_object()
-
-        if request.user.subscriber.filter(author=instance).exists():
-            return Response(
-                {'errors': 'Вы уже подписаны!'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if request.user.id == instance.id:
-            return Response(
-                {'errors': 'Нельзя подписаться на самого себя!'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        subs = request.user.subscriber.create(author=instance)
-        serializer = self.get_serializer(subs)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def perform_destroy(self, instance):
-        self.request.user.subscriber.filter(author=instance).delete()
 
 
 class AuthToken(ObtainAuthToken):
@@ -119,6 +77,39 @@ class UsersViewSet(UserViewSet):
             context={'request': request}
         )
         return self.get_paginated_response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=[
+            'POST',
+            'DELETE'
+        ],
+        permission_classes=[IsAuthenticated],
+    )
+    def subscribe(self, request, id):
+        user = request.user
+        author = get_object_or_404(User, pk=id)
+        if request.method == 'DELETE':
+            get_object_or_404(
+                Subscribe,
+                user=user,
+                author=author,
+            ).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = SubscribeSerializer(
+            author,
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        Subscribe.objects.create(
+            user=user,
+            author=author
+        )
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
 
 
 @api_view(['post'])
