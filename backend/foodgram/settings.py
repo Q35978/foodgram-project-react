@@ -35,7 +35,7 @@ ALLOWED_HOSTS = [
     'backend',
     '127.0.0.1',
     'localhost',
-    '158.160.56.96',
+    '158.160.44.196',
 ]
 
 # Application definition
