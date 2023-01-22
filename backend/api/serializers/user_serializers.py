@@ -92,6 +92,7 @@ class UserPasswordSerializer(serializers.Serializer):
         user = self.context['request'].user
         if not authenticate(
                 username=user.username,
+                email=user.email,
                 password=current_password
         ):
             raise serializers.ValidationError(
@@ -107,7 +108,8 @@ class UserPasswordSerializer(serializers.Serializer):
     def create(self, validated_data):
         user = self.context['request'].user
         password = make_password(
-            validated_data.get('new_password'))
+            validated_data.get('new_password')
+        )
         user.password = password
         user.save()
         return validated_data

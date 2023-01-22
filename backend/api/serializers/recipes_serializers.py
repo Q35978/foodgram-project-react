@@ -60,7 +60,8 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 class IngredientsInListEditSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
-        source='ingredient')
+        source='ingredient'
+    )
     amount = serializers.IntegerField()
 
     class Meta:
@@ -124,19 +125,13 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Recipe.objects.filter(
-            user_favorite__user=user,
-            id=obj.id
-        ).exists()
+        return obj.user_favorite.filter(user=user).exists()
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Recipe.objects.filter(
-            shopping_cart__user=user,
-            id=obj.id
-        ).exists()
+        return obj.shopping_cart.filter(user=user).exists()
 
 
 class RecipeEditSerializer(serializers.ModelSerializer):
