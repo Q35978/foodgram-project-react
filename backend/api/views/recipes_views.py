@@ -131,6 +131,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
                 is_favorited=Value(False),
             ).select_related('author').prefetch_related(
                 'tags',
+                'author',
                 'ingredients',
                 'recipe',
                 'shopping_cart',
@@ -151,6 +152,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             )
         ).select_related('author').prefetch_related(
             'tags',
+            'author',
             'ingredients',
             'recipe',
             'shopping_cart',
