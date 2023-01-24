@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model, authenticate
 import django.contrib.auth.password_validation as validators
-from django.contrib.auth.hashers import make_password
 
 from rest_framework import serializers
 
@@ -67,9 +66,8 @@ class TokenSerializer(serializers.Serializer):
         email = attrs.get('email')
         password = attrs.get('password')
         user = authenticate(
-            request=self.context.get('request'),
             email=email,
-            password=password
+            password=password,
         )
         if not user:
             raise serializers.ValidationError(
@@ -91,9 +89,8 @@ class UserPasswordSerializer(serializers.Serializer):
     def validate_current_password(self, current_password):
         user = self.context['request'].user
         if not authenticate(
-                username=user.username,
                 email=user.email,
-                password=current_password
+                password=current_password,
         ):
             raise serializers.ValidationError(
                 ERR_AUTH_MSG,
@@ -107,10 +104,9 @@ class UserPasswordSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
-        password = make_password(
+        user.set_password(
             validated_data.get('new_password')
         )
-        user.password = password
         user.save()
         return validated_data
 

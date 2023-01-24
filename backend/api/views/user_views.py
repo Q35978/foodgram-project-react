@@ -5,12 +5,10 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 
 from rest_framework import status
-from rest_framework.authtoken.models import Token
-from rest_framework.authtoken.views import ObtainAuthToken
+
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import (
-    AllowAny,
     IsAuthenticated,
 )
 
@@ -19,26 +17,11 @@ from users.models import Subscribe
 from api.serializers.user_serializers import (
     UserCreateSerializer,
     UserSerializer,
-    TokenSerializer,
     UserPasswordSerializer,
     SubscribeSerializer
 )
 
 User = get_user_model()
-
-
-class AuthToken(ObtainAuthToken):
-    serializer_class = TokenSerializer
-    permission_classes = (AllowAny,)
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
-        return Response(
-            {'auth_token': token.key},
-            status=status.HTTP_201_CREATED
-        )
 
 
 class UsersViewSet(UserViewSet):
@@ -65,17 +48,17 @@ class UsersViewSet(UserViewSet):
 
     @action(
         detail=False,
-        permission_classes=(IsAuthenticated,)
+        methods=['GET'],
+        serializer_class=SubscribeSerializer,
+        permission_classes=(IsAuthenticated,),
     )
     def subscriptions(self, request):
-        user = request.user
-        queryset = Subscribe.objects.filter(user=user)
-        pages = self.paginate_queryset(queryset)
-        serializer = SubscribeSerializer(
-            pages,
-            many=True,
-            context={'request': request}
-        )
+        queryset = Subscribe.objects.filter(subscriber_id=request.user.id)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(
@@ -87,24 +70,31 @@ class UsersViewSet(UserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def subscribe(self, request, id):
-        user = request.user
-        author = get_object_or_404(User, pk=id)
-        if request.method == 'DELETE':
-            get_object_or_404(
+        author = get_object_or_404(User, id=id)
+        if self.request.method.upper() == 'DELETE':
+            instance = get_object_or_404(
                 Subscribe,
-                user=user,
-                author=author,
-            ).delete()
+                subscriber=request.user,
+                author=author
+            )
+            self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
-        serializer = SubscribeSerializer(
-            author,
-            data=request.data,
-            context={'request': request}
-        )
-        serializer.is_valid(raise_exception=True)
-        Subscribe.objects.create(
-            user=user,
+        subscribe_is_exist = Subscribe.objects.filter(
+            subscriber_id=request.user.id,
+            author_id=author.id
+        ).exists()
+        if subscribe_is_exist or request.user == author:
+            return Response(
+                {'detail': 'Подписка есть или пытайтесь подписаться на себя'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        new_subscribe = Subscribe.objects.create(
+            subscriber=request.user,
             author=author
+        )
+        serializer = SubscribeSerializer(
+            new_subscribe,
+            context={'request': request}
         )
         return Response(
             serializer.data,

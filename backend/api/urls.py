@@ -3,7 +3,6 @@ from rest_framework.routers import DefaultRouter
 
 from api.views.user_views import (
     UsersViewSet,
-    AuthToken,
     change_password
 )
 from api.views.recipes_views import (
@@ -45,11 +44,6 @@ urlpatterns = [
     path(
         'auth/',
         include('djoser.urls.authtoken')
-    ),
-    path(
-        'auth/token/login/',
-        AuthToken.as_view(),
-        name='login'
     ),
     path(
         'users/set_password/',

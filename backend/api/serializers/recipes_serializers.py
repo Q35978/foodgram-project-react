@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
 
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
 
 from drf_extra_fields.fields import Base64ImageField
+
+from api.serializers.user_serializers import UserSerializer
 
 from recipes.models import (
     Tag,
@@ -14,9 +16,6 @@ from recipes.models import (
 )
 
 from users.models import Subscribe
-
-from api.serializers.user_serializers import UserSerializer
-
 
 User = get_user_model()
 
@@ -75,7 +74,7 @@ class IngredientsInListEditSerializer(serializers.ModelSerializer):
 
     def validate_amount(self, data):
         if not int(data) > 0:
-            raise serializers.ValidationError(
+            raise exceptions.ParseError(
                 {'error': 'Количество ингредиента введено не корректно!'}
             )
         return data
@@ -224,17 +223,6 @@ class RecipeEditSerializer(serializers.ModelSerializer):
             }).data
 
 
-class RecipeReducedSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Recipe
-        fields = (
-            'id',
-            'name',
-            'image',
-            'cooking_time',
-        )
-
-
 class UserFavouriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserFavourite
@@ -245,14 +233,17 @@ class UserFavouriteSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         user = data['user']
-        if user.user_favorite.filter(recipe=data['recipe']).exists():
+        if UserFavourite.objects.filter(
+                user=user,
+                recipe=data['recipe']
+        ).exists():
             raise serializers.ValidationError(
                 'Рецепт уже добавлен в избранное.'
             )
         return data
 
     def to_representation(self, instance):
-        return RecipeReducedSerializer(
+        return RecipeReadSerializer(
             instance.recipe,
             context={
                 'request': self.context.get('request')
@@ -270,14 +261,15 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         user = data['user']
-        if user.shopping_cart.filter(recipe=data['recipe']).exists():
-            raise serializers.ValidationError(
-                'Рецепт уже добавлен в корзину'
-            )
+        if ShoppingCart.objects.filter(
+                user=user,
+                recipe=data['recipe']
+        ):
+            raise serializers.ValidationError('Уже добавлен')
         return data
 
     def to_representation(self, instance):
-        return RecipeReducedSerializer(
+        return RecipeReadSerializer(
             instance.recipe,
             context={
                 'request':

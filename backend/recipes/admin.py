@@ -36,6 +36,14 @@ class IngredientAdmin(admin.ModelAdmin):
     empty_value_display = settings.EMPTY_VALUE_DISPLAY
 
 
+class IngredientsListInline(admin.TabularInline):
+    model = models.IngredientsList
+    fields = (
+        'ingredient', 'amount'
+    )
+    verbose_name = 'Ингредиенты'
+
+
 @admin.register(models.IngredientsList)
 class IngredientsListAdmin(admin.ModelAdmin):
     list_display = (
@@ -72,6 +80,7 @@ class RecipeAdmin(admin.ModelAdmin):
         'id',
         'name',
         'author',
+        'get_user_favorite',
     )
     fields = (
         ('name',),
@@ -95,4 +104,10 @@ class RecipeAdmin(admin.ModelAdmin):
         'author__username',
         'tags',
     )
+    inlines = (IngredientsListInline, )
     empty_value_display = settings.EMPTY_VALUE_DISPLAY
+
+    def get_user_favorite(self, obj):
+        return obj.user_favorite.count()
+
+    get_user_favorite.short_description = 'Добавлений в избранное'

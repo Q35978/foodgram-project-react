@@ -118,10 +118,17 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=('POST',),
+        methods=('POST', 'DELETE'),
         permission_classes=[IsAuthenticated]
     )
     def shopping_cart(self, request, pk):
+        if self.request.method.upper() == 'DELETE':
+            get_object_or_404(
+                ShoppingCart,
+                user=request.user,
+                recipe=get_object_or_404(Recipe, id=pk)
+            ).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         context = {'request': request}
         recipe = get_object_or_404(Recipe, id=pk)
         data = {
@@ -138,15 +145,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
             serializer.data,
             status=status.HTTP_201_CREATED
         )
-
-    @shopping_cart.mapping.delete
-    def destroy_shopping_cart(self, request, pk):
-        get_object_or_404(
-            ShoppingCart,
-            user=request.user.id,
-            recipe=get_object_or_404(Recipe, id=pk)
-        ).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=False,
@@ -207,10 +205,17 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=('POST',),
+        methods=('POST', 'DELETE'),
         permission_classes=[IsAuthenticated]
     )
     def favorite(self, request, pk):
+        if self.request.method.upper() == 'DELETE':
+            get_object_or_404(
+                UserFavourite,
+                user=request.user,
+                recipe=get_object_or_404(Recipe, id=pk)
+            ).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         context = {"request": request}
         recipe = get_object_or_404(Recipe, id=pk)
         data = {
@@ -227,12 +232,3 @@ class RecipesViewSet(viewsets.ModelViewSet):
             serializer.data,
             status=status.HTTP_201_CREATED
         )
-
-    @favorite.mapping.delete
-    def destroy_favorite(self, request, pk):
-        get_object_or_404(
-            UserFavourite,
-            user=request.user,
-            recipe=get_object_or_404(Recipe, id=pk)
-        ).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
