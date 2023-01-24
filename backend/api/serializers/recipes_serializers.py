@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 
-from rest_framework import exceptions, serializers
+from rest_framework import serializers
 
 from drf_extra_fields.fields import Base64ImageField
 
@@ -74,7 +74,7 @@ class IngredientsInListEditSerializer(serializers.ModelSerializer):
 
     def validate_amount(self, data):
         if not int(data) > 0:
-            raise exceptions.ParseError(
+            raise serializers.ValidationError(
                 {'error': 'Количество ингредиента введено не корректно!'}
             )
         return data
