@@ -35,7 +35,7 @@ ALLOWED_HOSTS = [
     'backend',
     '127.0.0.1',
     'localhost',
-    '158.160.44.196',
+    '51.250.92.107',
 ]
 
 # Application definition
@@ -177,7 +177,7 @@ SHOPPING_CART_FILENAME = 'shoppingcart.pdf'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
