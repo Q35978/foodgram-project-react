@@ -173,7 +173,7 @@ ERR_AUTH_MSG = 'Не удается войти с такими учетными 
 
 CUSTOM_PAGE_SIZE = 6
 
-SHOPPING_CART_FILENAME = 'shoppingcart.pdf'
+SHOPPING_CART_FILENAME = 'shoppingcart.txt'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [

@@ -94,19 +94,17 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         verbose_name='Автор',
-        related_name='recipe',
         on_delete=models.CASCADE,
     )
     tags = models.ManyToManyField(
         Tag,
         verbose_name='Тэги',
-        related_name='recipe',
     )
     ingredients = models.ManyToManyField(
         Ingredient,
         verbose_name='Ингредиенты',
-        related_name='recipe',
         through='IngredientsList',
+        related_name='recipe',
     )
     image = models.ImageField(
         verbose_name='Изображение',

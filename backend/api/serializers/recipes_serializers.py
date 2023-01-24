@@ -148,7 +148,6 @@ class RecipeEditSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all()
     )
     ingredients = IngredientsInListEditSerializer(
-        source='recipe',
         many=True
     )
 
@@ -169,7 +168,7 @@ class RecipeEditSerializer(serializers.ModelSerializer):
 
     def validate_ingredients(self, ingredients):
         ingredients_list = [
-            item['id'] for item in ingredients
+            item['ingredient'] for item in ingredients
         ]
         if not ingredients_list:
             raise serializers.ValidationError('Список ингреиентов не'
@@ -188,11 +187,12 @@ class RecipeEditSerializer(serializers.ModelSerializer):
             )
         return cooking_time
 
-    def create_ingredients(self, ingredients, recipe):
+    @staticmethod
+    def create_ingredients(recipe, ingredients):
         IngredientsList.objects.bulk_create(
             IngredientsList(
                 recipe=recipe,
-                ingredient_id=ingredient.get('id'),
+                ingredient=ingredient.get('ingredient'),
                 amount=ingredient.get('amount')
             )
             for ingredient in ingredients
@@ -201,10 +201,12 @@ class RecipeEditSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        user = self.context.get('request').user
-        recipe = Recipe.objects.create(author=user, **validated_data)
+        recipe = Recipe.objects.create(
+            author_id=self.context['request'].user.id,
+            **validated_data
+        )
         recipe.tags.set(tags)
-        self.create_ingredients(ingredients, recipe)
+        self.create_ingredients(recipe, ingredients)
         return recipe
 
     def update(self, instance, validated_data):

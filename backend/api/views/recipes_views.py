@@ -1,14 +1,8 @@
-from io import BytesIO
-
 from django.contrib.auth import get_user_model
 from django.db.models.aggregates import Sum
 from django.db.models.expressions import Exists, OuterRef, Value
-from django.http import FileResponse
+from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
-
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -27,8 +21,9 @@ from recipes.models import (
     Tag,
     Ingredient,
     Recipe,
+    IngredientsList,
     UserFavourite,
-    ShoppingCart
+    ShoppingCart,
 )
 
 from api.serializers.recipes_serializers import (
@@ -146,62 +141,30 @@ class RecipesViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED
         )
 
+    @staticmethod
+    def send_message(ingredients):
+        shopping_cart = 'Купить в магазине:'
+        for ingredient in ingredients:
+            shopping_cart += (
+                f"\n{ingredient['ingredient__name']} "
+                f"({ingredient['ingredient__measurement_unit']}) - "
+                f"{ingredient['amount']}")
+        response = HttpResponse(shopping_cart, content_type='text/plain')
+        response['Content-Disposition'] = (f'attachment; filename'
+                                           f'="{SHOPPING_CART_FILENAME}"')
+        return response
+
     @action(
         detail=False,
-        methods=['get'],
-        permission_classes=(IsAuthenticated,)
+        methods=['GET']
     )
     def download_shopping_cart(self, request):
-        pdfmetrics.registerFont(TTFont('Vera', 'Vera.ttf'))
-        tmp_storage = BytesIO()
-        page = canvas.Canvas(tmp_storage)
-        x_coordinate = 60
-        y_coordinate = 700
-        shopping_cart = (
-            request.user.shopping_cart.recipe.
-            values(
-                'ingredients__name',
-                'ingredients__measurement_unit'
-            ).annotate(amount=Sum('recipe__amount')).order_by())
-        page.setFont('Vera', 12)
-        if not shopping_cart:
-            page.setFont('Vera', 24)
-            page.drawString(
-                x_coordinate,
-                y_coordinate,
-                'Cписок пуст!')
-            page.save()
-            tmp_storage.seek(0)
-            return FileResponse(
-                tmp_storage,
-                as_attachment=True,
-                filename=SHOPPING_CART_FILENAME)
-
-        indent = 20
-        page.drawString(
-            x_coordinate,
-            y_coordinate,
-            'Cписок:'
-        )
-        for recipe in shopping_cart:
-            y_with_indent = y_coordinate - indent
-            page.drawString(
-                x_coordinate,
-                y_with_indent,
-                f'* {recipe["ingredients_name"]} - '
-                f'{recipe["amount"]}, '
-                f'{recipe["ingredients_list__measurement_unit"]}.')
-            y_coordinate -= 15
-            if y_coordinate <= 60:
-                page.showPage()
-                y_coordinate = 700
-        page.save()
-        tmp_storage.seek(0)
-        return FileResponse(
-            tmp_storage,
-            as_attachment=True,
-            filename=SHOPPING_CART_FILENAME
-        )
+        ingredients = IngredientsList.objects.filter(
+            recipe__shopping_cart__user=request.user
+        ).order_by('ingredient__name').values(
+            'ingredient__name', 'ingredient__measurement_unit'
+        ).annotate(amount=Sum('amount'))
+        return self.send_message(ingredients)
 
     @action(
         detail=True,

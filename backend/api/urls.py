@@ -1,5 +1,6 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+from djoser.views import TokenCreateView, TokenDestroyView
 
 from api.views.user_views import (
     UsersViewSet,
@@ -42,8 +43,14 @@ urlpatterns = [
         include('djoser.urls')
     ),
     path(
-        'auth/',
-        include('djoser.urls.authtoken')
+        'auth/token/login/',
+        TokenCreateView.as_view(),
+        name='login'
+    ),
+    path(
+        'auth/token/logout/',
+        TokenDestroyView.as_view(),
+        name='logout'
     ),
     path(
         'users/set_password/',

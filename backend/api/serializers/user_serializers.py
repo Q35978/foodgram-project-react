@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model, authenticate
 import django.contrib.auth.password_validation as validators
+from drf_extra_fields.fields import Base64ImageField
 
 from rest_framework import serializers
 
@@ -112,6 +113,8 @@ class UserPasswordSerializer(serializers.Serializer):
 
 
 class SubscribeRecipeSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
     class Meta:
         model = Recipe
         fields = (
@@ -120,34 +123,36 @@ class SubscribeRecipeSerializer(serializers.ModelSerializer):
             'image',
             'cooking_time'
         )
+        read_only_fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time'
+        )
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(
+    id = serializers.ReadOnlyField(
         source='author.id'
     )
-    email = serializers.EmailField(
+    email = serializers.ReadOnlyField(
         source='author.email'
     )
-    username = serializers.CharField(
+    username = serializers.ReadOnlyField(
         source='author.username'
     )
-    first_name = serializers.CharField(
+    first_name = serializers.ReadOnlyField(
         source='author.first_name'
     )
-    last_name = serializers.CharField(
+    last_name = serializers.ReadOnlyField(
         source='author.last_name'
     )
+    is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
-    is_subscribed = serializers.BooleanField(
-        read_only=True
-    )
-    recipes_count = serializers.IntegerField(
-        read_only=True
-    )
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = Subscribe
+        model = User
         fields = (
             'id',
             'email',
@@ -159,12 +164,19 @@ class SubscribeSerializer(serializers.ModelSerializer):
             'recipes_count'
         )
 
+    def get_is_subscribed(self, obj):
+        return Subscribe.objects.filter(
+            subscriber=obj.subscriber,
+            author=obj.author
+        ).exists()
+
     def get_recipes(self, obj):
-        author_recipes = obj.author.recipe.all()
-        return SubscribeRecipeSerializer(
-            author_recipes,
-            many=True
-        ).data
+        request = self.context.get('request')
+        limit = request.GET.get('recipes_limit')
+        queryset = Recipe.objects.filter(author=obj.author)
+        if limit:
+            queryset = queryset[:int(limit)]
+        return SubscribeRecipeSerializer(queryset, many=True).data
 
     def get_recipes_count(self, obj):
-        return obj.author.recipe.count()
+        return Recipe.objects.filter(author=obj.author).count()
