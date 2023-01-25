@@ -143,13 +143,16 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def send_message(ingredients):
-        shopping_cart = 'Купить в магазине:'
+        shopping_cart = 'Список покупок:'
         for ingredient in ingredients:
             shopping_cart += (
-                f"\n{ingredient['ingredient__name']} "
-                f"({ingredient['ingredient__measurement_unit']}) - "
-                f"{ingredient['amount']}")
-        response = HttpResponse(shopping_cart, content_type='text/plain')
+                f"\n * {ingredient['ingredient__name']} "
+                f"- {ingredient['amount']}"
+                f", {ingredient['ingredient__measurement_unit']}")
+        response = HttpResponse(
+            shopping_cart,
+            content_type='text/plain'
+        )
         response['Content-Disposition'] = (f'attachment; filename'
                                            f'="{SHOPPING_CART_FILENAME}"')
         return response
@@ -162,7 +165,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
         ingredients = IngredientsList.objects.filter(
             recipe__shopping_cart__user=request.user
         ).order_by('ingredient__name').values(
-            'ingredient__name', 'ingredient__measurement_unit'
+            'ingredient__name',
+            'ingredient__measurement_unit'
         ).annotate(amount=Sum('amount'))
         return self.send_message(ingredients)
 
