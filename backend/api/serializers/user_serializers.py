@@ -1,13 +1,10 @@
 from django.contrib.auth import get_user_model, authenticate
 import django.contrib.auth.password_validation as validators
+from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
 
-from rest_framework import serializers
-
 from recipes.models import Recipe
-
 from users.models import Subscribe
-
 from foodgram.settings import ERR_AUTH_MSG
 
 User = get_user_model()

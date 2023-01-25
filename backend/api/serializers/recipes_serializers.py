@@ -1,11 +1,9 @@
 from django.contrib.auth import get_user_model
-
 from rest_framework import serializers
-
 from drf_extra_fields.fields import Base64ImageField
 
 from api.serializers.user_serializers import UserSerializer
-
+from users.models import Subscribe
 from recipes.models import (
     Tag,
     Ingredient,
@@ -15,7 +13,6 @@ from recipes.models import (
     UserFavourite,
 )
 
-from users.models import Subscribe
 
 User = get_user_model()
 
@@ -163,7 +160,7 @@ class RecipeEditSerializer(serializers.ModelSerializer):
         for tag in tags:
             if not Tag.objects.filter(id=tag.id).exists():
                 raise serializers.ValidationError(
-                    'Указанного тега не существует')
+                    f'Тэга "{tag}" не существует')
         return tags
 
     def validate_ingredients(self, ingredients):
