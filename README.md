@@ -1,3 +1,5 @@
+
+![example workflow](https://github.com/Q35978/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 # Описание проекта YaMDb
 
 
