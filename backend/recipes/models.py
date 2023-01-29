@@ -1,12 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.db.models.functions import Length
-from django.core.validators import (
-    MinValueValidator,
-    MaxValueValidator,
-    RegexValidator
-)
-from colorfield.fields import ColorField
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from foodgram import settings
 
@@ -22,17 +17,12 @@ class Tag(models.Model):
         verbose_name='Тэг',
         max_length=settings.MAX_LEN_CHARFIELD,
     )
-    color = ColorField(
+    color = models.CharField(
+        blank=True,
+        null=True,
         verbose_name='Цвет HEX-код',
         max_length=settings.MAX_LEN_COLOR_HEX_CODE,
-        format='hex',
-        unique=True,
-        validators=[
-            RegexValidator(
-                regex="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
-                message='Проверьте вводимый формат',
-            )
-        ],
+        default='FF',
     )
     slug = models.CharField(
         unique=True,
