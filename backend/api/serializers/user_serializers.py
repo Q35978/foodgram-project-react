@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model, authenticate
-from django.contrib.auth.hashers import make_password
 import django.contrib.auth.password_validation as validators
 from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
