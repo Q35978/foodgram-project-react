@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth.hashers import make_password
 import django.contrib.auth.password_validation as validators
 from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
@@ -83,30 +84,6 @@ class UserPasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(
         label='Новый пароль'
     )
-
-    def validate_current_password(self, current_password):
-        user = self.context['request'].user
-        if not authenticate(
-                email=user.email,
-                password=current_password,
-        ):
-            raise serializers.ValidationError(
-                ERR_AUTH_MSG,
-                code='authorization'
-            )
-        return current_password
-
-    def validate_new_password(self, new_password):
-        validators.validate_password(new_password)
-        return new_password
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        user.set_password(
-            validated_data.get('new_password')
-        )
-        user.save()
-        return validated_data
 
 
 class SubscribeRecipeSerializer(serializers.ModelSerializer):

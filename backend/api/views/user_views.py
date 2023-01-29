@@ -48,6 +48,22 @@ class UsersViewSet(UserViewSet):
 
     @action(
         detail=False,
+        methods=['POST'],
+        permission_classes=(IsAuthenticated,)
+    )
+    def set_password(self, request, pk=None):
+        user = self.request.user
+        serializer = UserPasswordSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=False,
         methods=['GET'],
         serializer_class=SubscribeSerializer,
         permission_classes=(IsAuthenticated,),
@@ -102,20 +118,18 @@ class UsersViewSet(UserViewSet):
             status=status.HTTP_201_CREATED
         )
 
-
+"""
 @api_view(['post'])
-def change_password(request):
+def set_password(request):
     serializer = UserPasswordSerializer(
         data=request.data,
-        context={'request': request}
-    )
-    if not serializer.is_valid():
+        context={'request': request})
+    if serializer.is_valid():
+        serializer.save()
         return Response(
-            {'error': 'Введите верные данные!'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    serializer.save()
+            {'message': 'Пароль изменен!'},
+            status=status.HTTP_201_CREATED)
     return Response(
-        {'message': 'Пароль изменен!'},
-        status=status.HTTP_201_CREATED
-    )
+        {'error': 'Введите верные данные!'},
+        status=status.HTTP_400_BAD_REQUEST)
+"""

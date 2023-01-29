@@ -4,7 +4,7 @@ from djoser.views import TokenCreateView, TokenDestroyView
 
 from api.views.user_views import (
     UsersViewSet,
-    change_password
+    # set_password
 )
 from api.views.recipes_views import (
     TagsViewSet,
@@ -51,10 +51,5 @@ urlpatterns = [
         'auth/token/logout/',
         TokenDestroyView.as_view(),
         name='logout'
-    ),
-    path(
-        'users/set_password/',
-        change_password,
-        name='set_password'
     ),
 ]
