@@ -1,14 +1,14 @@
 
 ![example workflow](https://github.com/Q35978/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
-# Описание проекта YaMDb
+# YaMDb Project Description
 
 
-## Описание
-Проект Foodgram - это сайт на котором пользователь может публиковать рецепты, 
-добавлять их в "Избранное", подписываться на других пользователей и  скачивать
-список продуктов, необходимых для приготовления выбранных блюд.
+## Description
+The Foodgram project is a website where a user can publish recipes,
+add them to Favorites, subscribe to other users and download
+a list of products needed to prepare selected dishes.
 
-## Проект доступен по ссылкам:
+## The project is available via the links:
 
 ```
 - http://51.250.92.107/
@@ -16,93 +16,93 @@
 - http://51.250.92.107/api/docs/
 ```
 
-## Учетная запись администратора:
+## Administrator Account:
 
-```
-- логин: review
-- почта: review@y.ru 
-- пароль: review1234
+``
+- login: review
+- mail: review@y.ru
+- password: review1234
 ```
 
-# Настройка необходимых файлов
+# Setting up required files
 
-```
-# СУБД, с которой работаем
+``
+# DBMS we work with
 DB_ENGINE=django.db.backends.postgresql
-# Имя базы данных
+# Database name
 DB_NAME=
-# Имя пользователя для подключения к базе данных
+# User name to connect to the database
 POSTGRES_USER=
-# Пароль пользователя 
+# User password
 POSTGRES_PASSWORD=
-# Название контейнера
+# Container name
 DB_HOST=
-# порт для подключения к БД
+# DB connection port
 DB_PORT=
-# Ключ приложения (по желанию)
+# Application key (optional)
 SECRET_KEY=
-```
+``
 
-# Нелбходимые для установки приложения команды
-В Linux все команды необходимо выполнять от имени администратора
+# Commands not needed to install the application
+On Linux, all commands must be executed as an administrator
 
-- Выполнить вход на удаленный сервер
-- Установить docker:
-```
-sudo apt install docker.io 
-```
-- Установить docker-compose:
-```
-sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+- Log in to a remote server
+- Install docker:
+``
+sudo apt install docker.io
+``
+- Install docker-compose:
+``
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose -$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
-```
-- Отредактировать файл nginx.conf (infra/nginx.conf), обязательно в server_name вписать IP-адрес сервера
-- Перенести файлы docker-compose.yml, nginx.conf на удаленныйсервер:
+``
+- Edit the nginx.conf file (infra/nginx.conf), be sure to enter the server's IP address in server_name
+- Transfer docker-compose files.yml, nginx.conf to a remote server:
 ```bash
 scp docker-compose.yml <username>@<host>:/home/<username>/docker-compose.yml
 scp nginx.conf <username>@<host>:/home/<username>/nginx.conf
-```
-- собрать и запустить контейнеры на сервере:
-```
+``
+- build and run containers on the server:
+``
 docker-compose up -d --build
+``
+- Create an .env file according to the template suggested above. Be sure to change the values of POSTGRES_USER and POSTGRES_PASSWORD
+- To work with Workflow, add environment variables to Secrets GitHub for work:
 ```
-- Создать .env файл по предлагаемому выше шаблону. Обязательно изменить значения POSTGRES_USER и POSTGRES_PASSWORD
-- Для работы с Workflow добавить в Secrets GitHub переменные окружения для работы:
-    ```
-    DB_ENGINE=<django.db.backends.postgresql>
-    DB_NAME=<имя базы данных postgres>
-    DB_USER=<пользователь бд>
-    DB_PASSWORD=<пароль>
-    DB_HOST=<db>
-    DB_PORT=<5432>
-    SECRET_KEY=<ключ приложения>
-    
-    DOCKER_PASSWORD=<пароль от DockerHub>
-    DOCKER_USERNAME=<имя пользователя>
-    
-    USER=<имя пользователя для подключения к серверу где будет разворачиваться приложение>
-    HOST=<IP сервера>
-    SSH_KEY=<ваш SSH ключ для подключения к удаленному серверу>
-    PASSPHRASE=<ключевая фраза для ssh rключа>
-  
-    TELEGRAM_TO=<ID чата, в который придет сообщение>
-    TELEGRAM_TOKEN=<токен вашего бота>
-    ```
-- Когдасборка прошла успешно необходимо выполнить следующие действия (только при первом деплое):
-    * провести миграции:
-    ```
-    docker-compose exec backend python manage.py migrate
-    ```
-    * Создать суперпользователя для первого входа:
-    ```
-    docker-compose exec backend python manage.py createsuperuser
-    ```
-    * Заполнить список ингридиентов:
-    ```
-    docker-compose exec backend python manage.py load_ingredients_from_csv
-    ```
+DB_ENGINE=<django.db.backends.postgresql>
+DB_NAME=<postgres database name>
+DB_USER=<db user>
+DB_PASSWORD=<password>
+DB_HOST=<db>
+DB_PORT=<5432>
+SECRET_KEY=<application key>
 
-# Стек технологий
+DOCKER_PASSWORD=<DockerHub password>
+DOCKER_USERNAME=<user name>
+
+USER=<username to connect to the server where the application will be deployed>
+HOST=<Server IP>
+SSH_KEY=<your SSH key to connect to the remote server>
+PASSPHRASE=<passphrase for ssh key>
+
+TELEGRAM_TO=<ID of the chat to which the message will be sent>
+TELEGRAM_TOKEN=<your bot's token>
+```
+- When the assembly was successful, the following steps must be performed (only at the first deployment):
+* conduct migrations:
+```
+docker-compose exec backend python manage.py migrate
+```
+* Create a superuser for the first login:
+```
+docker-compose exec backend python manage.py createsuperuser
+```
+* Fill in the list of ingredients:
+``
+docker-compose exec backend python manage.py load_ingredients_from_csv
+```
+
+# Technology stack
 - Python
 - Django REST framework
 - PostgreSQL
